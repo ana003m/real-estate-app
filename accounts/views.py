@@ -36,7 +36,10 @@ def profile(request):
     if request.method == "POST":
         profile.phone = request.POST.get("phone")
         profile.city = request.POST.get("city")
+        if "photo" in request.FILES:
+            profile.photo = request.FILES["photo"]
         profile.save()
+        messages.success(request, "Profile updated successfully.")
         return redirect("profile")
 
     return render(request, "accounts/profile.html", {

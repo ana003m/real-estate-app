@@ -83,6 +83,7 @@ class PropertyForm(forms.ModelForm):
             "city": forms.TextInput(attrs={"class": "form-control", "placeholder": "Enter city"}),
             "location": forms.TextInput(attrs={"class": "form-control", "placeholder": "Street, neighborhood, etc."}),
             "property_type": forms.Select(attrs={"class": "form-select"}),
+            "listing_type": forms.Select(attrs={"class": "form-select"}),
             "features": forms.SelectMultiple(
                 attrs={"class": "form-select", "id": "features-select"}
             ),

@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import HttpResponse
 
+from core.forms import ContactForm
 from core.models import ContactMessage, BlogPost
 from properties.models import Property
 
@@ -11,31 +12,32 @@ def about(request):
 
 def contact(request):
     if request.method == "POST":
-        ContactMessage.objects.create(
-            first_name=request.POST.get("first_name", "").strip(),
-            last_name=request.POST.get("last_name", "").strip(),
-            email=request.POST.get("email", "").strip(),
-            phone=request.POST.get("phone", "").strip(),
-            subject=request.POST.get("subject", "").strip(),
-            message=request.POST.get("message", "").strip(),
-        )
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return HttpResponse("OK")
-        messages.success(request, "Your message has been sent! We'll get back to you shortly.")
-        return redirect("contact")
+        form = ContactForm(request.POST)
+        if form.is_valid():
+            form.save()
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return HttpResponse("OK")
+            messages.success(request, "Your message has been sent! We'll get back to you shortly.")
+            return redirect("contact")
+    else:
+        form = ContactForm()
 
-    return render(request, "core/contact.html")
+    return render(request, "core/contact.html", {"form": form})
 
 
 def home(request):
-    all_approved = Property.objects.filter(status="approved").prefetch_related("images").order_by('-created_at')
+    approved = list(
+        Property.objects.filter(status="approved")
+        .prefetch_related("images")
+        .order_by("-created_at")[:7]
+    )
     blog_posts = BlogPost.objects.filter(is_published=True)[:3]
 
     context = {
-        'featured_prop': all_approved.first(),
-        'side_properties': all_approved[1:4],
-        'bottom_properties': all_approved[4:7],
-        'blog_posts': blog_posts,
+        "featured_prop":    approved[0] if len(approved) > 0 else None,
+        "side_properties":  approved[1:4],
+        "bottom_properties": approved[4:7],
+        "blog_posts":       blog_posts,
     }
     return render(request, "core/home.html", context)
 
