@@ -14,7 +14,8 @@ logger = logging.getLogger(__name__)
 
 from properties.forms import PropertyForm
 from properties.models import Property, PropertyImage, Feature, TourRequest
-from properties.services.ai_chat import (
+from properties.ai import (
+    MAX_CHAT_HISTORY, MAX_LIMIT,
     call_groq, call_groq_chat, call_groq_prompt, parse_ai_response, is_groq_configured,
     apply_filters, detect_intent, serialize_property_for_comparison,
     build_comparison_prompt,
@@ -309,9 +310,9 @@ def ai_chat(request):
 
     chat_history = request.session.get("chat_history", [])
     chat_history.append({"role": "user", "content": user_message})
-    # Keep only the last 20 messages to avoid Groq context window overflow
-    if len(chat_history) > 20:
-        chat_history = chat_history[-20:]
+    # Keep only the last MAX_CHAT_HISTORY messages to avoid Groq context window overflow
+    if len(chat_history) > MAX_CHAT_HISTORY:
+        chat_history = chat_history[-MAX_CHAT_HISTORY:]
 
     base_queryset = Property.objects.filter(status="approved").prefetch_related("images", "features")
     intent, matched_props = detect_intent(user_message, base_queryset)
@@ -342,8 +343,8 @@ def ai_chat(request):
         conditions = parsed.get("conditions", [])
         sort = parsed.get("sort", [])
         raw_limit = parsed.get("limit")
-        # None means "no limit requested" — show up to 50; explicit number is respected
-        result_limit = int(raw_limit) if raw_limit is not None else 50
+        # None means "no limit requested"; explicit number is capped at MAX_LIMIT
+        result_limit = min(int(raw_limit), MAX_LIMIT) if raw_limit is not None else MAX_LIMIT
         ai_message = parsed.get("message", "")
     except GroqRateLimitError:
         ai_message = "I've reached my daily request limit. Please try again in a few minutes."
