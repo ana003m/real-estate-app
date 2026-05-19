@@ -233,13 +233,13 @@ queryset.filter(
 
 ## 👩‍💻 Authors
 
-| Name | Index |
-|---|---|
+| Name | Index  |
+|---|--------|
 | Ana Manasieva | 221200 |
 | Nela Nikolova | 221045 |
-| Iva Kostadinova | 221224 |
+| Iva Kostadinova | 221124 |
 | Aleksandra Krusharoska | 221005 |
-| Sara Dobrevska | 221124 |
+| Sara Dobrevska | 221125 |
 
 ---
 ## 📄 License
